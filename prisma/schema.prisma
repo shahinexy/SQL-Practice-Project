@@ -3,113 +3,24 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id               String          @id @default(auto()) @map("_id") @db.ObjectId
-  fullName         String
-  image            String?         @default("")
-  email            String          @unique
-  password         String
-  fcmToken         String?         @default("")
-  isBlocked        Boolean         @default(false)
-  activePlan       Boolean         @default(false)
-  verifiedEmail    Boolean         @default(false)
-  expirationOtp    DateTime?
-  otp              Int?
-  role             UserRole        @default(USER)
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  profile          Profile[]
-  sentRooms        Room[]          @relation("RoomSender")
-  receivedRooms    Room[]          @relation("RoomReceiver")
-  sentMessages     Chat[]          @relation("ChatSender")
-  receivedMessages Chat[]          @relation("ChatReceiver")
-  PurchasedPlan    PurchasedPlan[]
-
-  @@map("Users")
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  name  String?
+  posts Post[]
 }
 
-model Profile {
-  id                 String        @id @default(auto()) @map("_id") @db.ObjectId
-  fullName           String
-  image              String?       @default("")
-  maritalStatus      MaritalStatus
-  location           String
-  maritalVerifyCount Int           @default(0)
-  redFlag            Int           @default(0)
-  yellowFlag         Int           @default(0)
-  greenFlag          Int           @default(0)
-  isDeleted          Boolean       @default(false)
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
-  userId             String        @db.ObjectId
-  user               User          @relation(fields: [userId], references: [id])
-
-  @@map("Profile")
-}
-
-model Plan {
-  id            String          @id @default(auto()) @map("_id") @db.ObjectId
-  title         String?         @default("")
-  featured      String[]        @default([])
-  duration      Int
-  price         Float
-  isDeleted     Boolean         @default(false)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  PurchasedPlan PurchasedPlan[]
-
-  @@map("Subscription-Plan")
-}
-
-model PurchasedPlan {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  paymentId  String
-  amount     Float
-  activePlan Boolean  @default(true)
-  startDate  DateTime @default(now())
-  endDate    DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  userId     String   @db.ObjectId
-  planId     String   @db.ObjectId
-  user       User     @relation(fields: [userId], references: [id])
-  Plan       Plan     @relation(fields: [planId], references: [id])
-
-  @@map("Purchased-Plan")
-}
-
-model Room {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  senderId   String   @db.ObjectId
-  receiverId String   @db.ObjectId
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  sender     User     @relation("RoomSender", fields: [senderId], references: [id])
-  receiver   User     @relation("RoomReceiver", fields: [receiverId], references: [id])
-  chat       Chat[]
-
-  @@map("rooms")
-}
-
-model Chat {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  message    String
-  images     String?  @default("")
-  isRead     Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  senderId   String   @db.ObjectId
-  receiverId String   @db.ObjectId
-  roomId     String   @db.ObjectId
-  sender     User     @relation("ChatSender", fields: [senderId], references: [id])
-  receiver   User     @relation("ChatReceiver", fields: [receiverId], references: [id])
-  room       Room     @relation(fields: [roomId], references: [id])
-
-  @@map("chats")
+model Post {
+  id        Int     @id @default(autoincrement())
+  title     String
+  content   String?
+  published Boolean @default(false)
+  author    User    @relation(fields: [authorId], references: [id])
+  authorId  Int
 }
 
 enum UserRole {
